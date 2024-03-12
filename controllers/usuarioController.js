@@ -1,7 +1,8 @@
 import {check, validationResult} from 'express-validator'
+import bcrypt from 'bcrypt'
 import Usuario from '../models/Usuario.js'
 import {generarId} from '../helpers/tokens.js'
-import {emailRegistro} from '../helpers/email.js'
+import {emailRegistro, emailOlvidePassword} from '../helpers/email.js'
 
 const formularioLogin = (req, res) =>{
     res.render('auth/login', {
@@ -10,8 +11,6 @@ const formularioLogin = (req, res) =>{
 }
 
 const formularioRegistro = (req, res) =>{
-    console.log(req.csrfToken())
-
     res.render('auth/registro', {
          pagina: 'Crear cuenta',
          csrfToken: req.csrfToken()
@@ -112,15 +111,121 @@ const confirmar = async (req, res) =>{
 
 const formularioOlvidePassword = (req, res) =>{
     res.render('auth/olvide-password', {
-          pagina: 'Recupera tu acceso a Bienes Raices'
+          pagina: 'Recupera tu acceso a Bienes Raices',
+          csrfToken: req.csrfToken(),
     });
 }
 
+const resetearPassword = async (req, res) =>{
+    //Valdiaciones
+    await check('email').isEmail().withMessage('Eso no parece un email').run(req)
+
+    let resultado = validationResult(req)
+
+    //Verificar que el resultado este vacío
+    if(!resultado.isEmpty()){
+        //Errores
+        return res.render('auth/olvide-password',{
+            pagina: 'Recupera tu acceso a Bienes Raices',
+            csrfToken: req.csrfToken(),    
+            errores: resultado.array()        
+        })
+    }
+
+    //Si es un email, buscar el usuario y ver si existe +
+    const { email} = req.body;
+    const usuario = await Usuario.findOne({where: {email}})
+    if(!usuario){
+        return res.render('auth/olvide-password', {
+            pagina: 'Recupera tu acceso a Bienes Raices',
+            csrfToken: req.csrfToken(),    
+            errores: [{msg: 'El email no pertecene a ningún usuario'}]
+        })
+    }
+    //Generar token y enviar email
+    usuario.token = generarId();
+    await usuario.save();
+
+    //Enviar email
+    emailOlvidePassword({
+        email: usuario.email,
+        nombre: usuario.nombre,
+        token: usuario.token
+    })
+
+    //Renderizar un mensaje 
+    res.render('templates/mensaje',{
+        pagina: 'Reestablece tu contraseña',
+        mensaje: 'Hemos enviado un email con las intrucciones'
+    })
+
+}
+
+const comprobarToken = async (req,res) =>{
+    const { token } = req.params;
+
+    const usuario = await Usuario.findOne({where: {token}})
+    if(!usuario){
+        return res.render('auth/confirmar-cuenta',{
+            pagina: 'Reestablecer tu contraseña',
+            mensaje: 'Hubo un error al validar tu información, intenta de nuevo',
+            error: true
+        })
+    }
+
+    //Mostrar fomulario para modificar el password 
+    res.render('auth/reset-password',{
+        pagina: 'Restablece tu contraseña',
+        csrfToken: req.csrfToken()
+    })
+
+
+}
+const nuevoPassword = async (req,res) =>{
+    //Validar password
+    await check('password').isLength({min: 6}).withMessage("La contraseña debe ser de almenos 6 caracteres").run(req)
+    let resultado = validationResult(req)
+
+    if(!resultado.isEmpty()){
+        //errores 
+        return res.render('auth/reset-password',{
+            pagina: 'Restablece tu contraseña',
+            csrfToken: req.csrfToken(),
+            errores: resultado.array()
+        })
+    }
+
+    const {token} = req.params;
+    const {password} = req.body;
+
+    //Identificar quien hace el cambio 
+    const usuario = await Usuario.findOne({where: {token}})
+    
+    //Hashear el nuevo password
+    const salt = await bcrypt.genSalt(10)
+    usuario.password = await bcrypt.hash(password, salt);
+
+    //eliminar token 
+    usuario.token = null;
+
+    // guardar usuario 
+    await usuario.save();
+
+    //Renderizar vista
+    res.render('auth/confirmar-cuenta', {
+        pagina: 'Contraseña reestablecida',
+        mensaje: 'La contraseña se actualizó correctamente'
+    })
+
+}
 
 export {
     formularioLogin,
     formularioRegistro,
     registrar,
     confirmar,
-    formularioOlvidePassword
+    formularioOlvidePassword,
+    resetearPassword,
+    comprobarToken,
+    nuevoPassword
 }
