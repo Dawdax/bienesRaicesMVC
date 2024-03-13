@@ -31,4 +31,10 @@ const Usuario = db.define('usuarios',{
   }
 });
 
+//Métodos personalizados 
+Usuario.prototype.verificarPassword = function(password){
+    return bcrypt.compareSync(password, this.password);
+}
+//NO PUEDES USAR ARROW FUNCTION PORQUE UTILIZA This.password, porque no apunta el scop en el objeto actual, sino global
+
 export default Usuario
