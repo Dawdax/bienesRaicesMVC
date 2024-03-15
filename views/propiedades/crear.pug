@@ -18,6 +18,9 @@ block contenido
                     div    
                         label(class=" block text-sm uppercase text-gray-500 mb-3 font-bold " for="titulo") Titulo de anuncio
                         input(id="titulo" type="text" placeholder="Titulo de propiedad, ej. Casa en la playa" name="titulo" class=" w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400") 
+                    div
+                        label.block.text-sm.uppercase.text-gray-500.mb-3.font-bold(for="descripcion") Descripción
+                        textarea#descripcion.placeholder-gray-400(name="descripcion" placeholder="Descripción de la propiedad" class="w-full px-3 py-2 border border-gray-300 rounded-md")
 
                     div(class="md:flex md:gap-4 space-y-5 md:space-y-0")
                         div(class="md:w-1/2")    
@@ -46,12 +49,23 @@ block contenido
                                     option(value = n ) #{n} 
 
                         div(class="md:w-1/3")    
-                            label(class=" block text-sm uppercase text-gray-500 mb-3 font-bold " for="Baños") Baños
-                            select(id="Baños" name="Baños" class=" w-full px-3 py-2 border border-gray-300 rounded-m")
+                            label(class=" block text-sm uppercase text-gray-500 mb-3 font-bold " for="wc") WC
+                            select(id="wc" name="wc" class=" w-full px-3 py-2 border border-gray-300 rounded-m")
                                 option(value="")   -- Selecione --
                                 - for(let n = 1; n < 5; n++)
                                     option(value = n ) #{n} 
-                    #mapa(class="h-96")
+                    div.border-gray-200.border-t.py-5.space-y-5
+                        h3.text-lg.leading-6.font-medium.text-gray-900 Ubicación 
+                        p.text-gray-600 Ubica la propiedad en el mapa
+                        #mapa(class="h-96")
+
+                        div     
+                            p.calle
+
+                        input(type="hidden" name="calle" id="calle")
+                        input(type="hidden" name="lat" id="lat")
+                        input(type="hidden" name="lng" id="lng")
+
                     
 block scripts
     script(src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js")
