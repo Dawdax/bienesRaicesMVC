@@ -28,6 +28,14 @@ const Usuario = db.define('usuarios',{
           usuario.password = await bcrypt.hash(usuario.password, salt);
 
     }
+  },
+  scopes:{
+    //Eliminar password para no mostrarlo en la consulta de JWT
+    eliminarPassword:{
+      attributes:{
+        exclude:['password','token','confirmado','createdAt','updatedAt']
+      }
+    }
   }
 });
 
