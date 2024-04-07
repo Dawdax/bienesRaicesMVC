@@ -18,7 +18,7 @@ block contenido
                                 div(class="sm:w-1/4 md:w-1/6")
                                     img(src=`uploads/${propiedad.imagen}` alt=`imagen propiedad ${propiedad.titulo}` class="w-full block")
                                 div(class="sm:w-2/4 md:w-3/6 lg:w-4/6 space-y-2") 
-                                    a(class="block text-2xl font-extrabold text-indigo-600 truncate" href="#")= propiedad.titulo
+                                    a(class="block text-2xl font-extrabold text-indigo-600 truncate" href=`/propiedad/${propiedad.id}`)= propiedad.titulo
                                     p(class="text-sm text-black font-bold")= propiedad.categoria.nombre
                                     p(class="text-sm text-gray-500 font-bold flex items-center")
                                         svg(xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6")
